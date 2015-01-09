@@ -13,6 +13,9 @@
 		3EAB3E6E1A5E65DB00923DB0 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 3EAB3E6D1A5E65DB00923DB0 /* Images.xcassets */; };
 		3EAB3E711A5E65DB00923DB0 /* LaunchScreen.xib in Resources */ = {isa = PBXBuildFile; fileRef = 3EAB3E6F1A5E65DB00923DB0 /* LaunchScreen.xib */; };
 		3EAB3E7D1A5E65DB00923DB0 /* PhotoBrowserDemoTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3EAB3E7C1A5E65DB00923DB0 /* PhotoBrowserDemoTests.swift */; };
+		3EAB3E881A5E675F00923DB0 /* PhotoBrowserViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3EAB3E871A5E675F00923DB0 /* PhotoBrowserViewController.swift */; };
+		3EAB3E8A1A5E678500923DB0 /* ImageItemRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3EAB3E891A5E678500923DB0 /* ImageItemRenderer.swift */; };
+		3EAB3E8C1A5E6A3500923DB0 /* PhotoBrowserDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3EAB3E8B1A5E6A3500923DB0 /* PhotoBrowserDelegate.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -36,6 +39,9 @@
 		3EAB3E761A5E65DB00923DB0 /* PhotoBrowserDemoTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = PhotoBrowserDemoTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		3EAB3E7B1A5E65DB00923DB0 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		3EAB3E7C1A5E65DB00923DB0 /* PhotoBrowserDemoTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoBrowserDemoTests.swift; sourceTree = "<group>"; };
+		3EAB3E871A5E675F00923DB0 /* PhotoBrowserViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PhotoBrowserViewController.swift; sourceTree = "<group>"; };
+		3EAB3E891A5E678500923DB0 /* ImageItemRenderer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ImageItemRenderer.swift; sourceTree = "<group>"; };
+		3EAB3E8B1A5E6A3500923DB0 /* PhotoBrowserDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PhotoBrowserDelegate.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -77,6 +83,7 @@
 		3EAB3E631A5E65DB00923DB0 /* PhotoBrowserDemo */ = {
 			isa = PBXGroup;
 			children = (
+				3EAB3E861A5E674C00923DB0 /* photoBrowser */,
 				3EAB3E661A5E65DB00923DB0 /* AppDelegate.swift */,
 				3EAB3E681A5E65DB00923DB0 /* ViewController.swift */,
 				3EAB3E6A1A5E65DB00923DB0 /* Main.storyboard */,
@@ -110,6 +117,16 @@
 				3EAB3E7B1A5E65DB00923DB0 /* Info.plist */,
 			);
 			name = "Supporting Files";
+			sourceTree = "<group>";
+		};
+		3EAB3E861A5E674C00923DB0 /* photoBrowser */ = {
+			isa = PBXGroup;
+			children = (
+				3EAB3E871A5E675F00923DB0 /* PhotoBrowserViewController.swift */,
+				3EAB3E891A5E678500923DB0 /* ImageItemRenderer.swift */,
+				3EAB3E8B1A5E6A3500923DB0 /* PhotoBrowserDelegate.swift */,
+			);
+			name = photoBrowser;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -212,8 +229,11 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				3EAB3E881A5E675F00923DB0 /* PhotoBrowserViewController.swift in Sources */,
+				3EAB3E8C1A5E6A3500923DB0 /* PhotoBrowserDelegate.swift in Sources */,
 				3EAB3E691A5E65DB00923DB0 /* ViewController.swift in Sources */,
 				3EAB3E671A5E65DB00923DB0 /* AppDelegate.swift in Sources */,
+				3EAB3E8A1A5E678500923DB0 /* ImageItemRenderer.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
