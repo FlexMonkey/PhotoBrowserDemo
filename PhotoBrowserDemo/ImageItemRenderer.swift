@@ -35,7 +35,6 @@ class ImageItemRenderer: UICollectionViewCell, PHPhotoLibraryChangeObserver
         
         blurOverlay.frame = labelFrame
         
-        label = UILabel(frame: CGRectZero)
         label.numberOfLines = 0
         label.frame = labelFrame
         label.adjustsFontSizeToFitWidth = true

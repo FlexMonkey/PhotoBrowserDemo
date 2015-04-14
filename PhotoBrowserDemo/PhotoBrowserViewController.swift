@@ -267,9 +267,9 @@ class PhotoBrowserViewController: UIViewController, UICollectionViewDataSource, 
     
     func collectionView(collectionView: UICollectionView, cellForItemAtIndexPath indexPath: NSIndexPath) -> UICollectionViewCell
     {
-        let cell = collectionView.dequeueReusableCellWithReuseIdentifier("Cell", forIndexPath: indexPath) as ImageItemRenderer
+        let cell = collectionView.dequeueReusableCellWithReuseIdentifier("Cell", forIndexPath: indexPath) as! ImageItemRenderer
         
-        let asset = assets[indexPath.row] as PHAsset
+        let asset = assets[indexPath.row] as! PHAsset
         
         cell.asset = asset;
         
