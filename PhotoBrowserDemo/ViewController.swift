@@ -45,7 +45,7 @@ class ViewController: UIViewController, PhotoBrowserDelegate
     
     override func viewDidLayoutSubviews()
     {
-        imageView.frame = CGRect(x: 0, y: 0, width: view.frame.width, height: view.frame.height - 40).rectByInsetting(dx: 10, dy: 10)
+        imageView.frame = CGRect(x: 0, y: 0, width: view.frame.width, height: view.frame.height - 40).insetBy(dx: 10, dy: 10)
         
         launchBrowserButton.frame = CGRect(x: 0, y: view.frame.height - 40, width: view.frame.width, height: 40)
         

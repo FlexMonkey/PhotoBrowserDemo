@@ -28,14 +28,14 @@ class PhotoBrowserViewController: UIViewController, UICollectionViewDataSource, 
     
     var delegate: PhotoBrowserDelegate?
     
-    func launch(#size: CGSize, view: UIView)
+    func launch(size size: CGSize, view: UIView)
     {
         preferredContentSize = size
         
         let popoverController = UIPopoverController(contentViewController: self)
-        let popoverRect = view.frame.rectByInsetting(dx: 0, dy: 0)
+        let popoverRect = view.frame.insetBy(dx: 0, dy: 0)
         
-        popoverController.presentPopoverFromRect(popoverRect, inView: view, permittedArrowDirections: UIPopoverArrowDirection.allZeros, animated: true)
+        popoverController.presentPopoverFromRect(popoverRect, inView: view, permittedArrowDirections: UIPopoverArrowDirection(), animated: true)
     }
     
     var assets: PHFetchResult!
@@ -110,7 +110,7 @@ class PhotoBrowserViewController: UIViewController, UICollectionViewDataSource, 
             let fetchOptions = PHFetchOptions()
             fetchOptions.predicate = NSPredicate(format: "mediaType = %i", PHAssetMediaType.Image.rawValue)
             
-            let assetsInCollection  = PHAsset.fetchAssetsInAssetCollection(assetCollection, options: fetchOptions)
+            let assetsInCollection  = PHAsset.fetchAssetsInAssetCollection(assetCollection!, options: fetchOptions)
             
             if assetsInCollection.count > 0 || assetCollection?.localizedTitle == "Favorites"
             {
@@ -123,7 +123,7 @@ class PhotoBrowserViewController: UIViewController, UICollectionViewDataSource, 
             }
         }
         
-        segmentedControlItems = segmentedControlItems.sorted { $0 < $1 }
+        segmentedControlItems = segmentedControlItems.sort { $0 < $1 }
         
         segmentedControl = UISegmentedControl(items: segmentedControlItems)
         segmentedControl.selectedSegmentIndex = photoBrowserSelectedSegmentIndex
@@ -156,12 +156,10 @@ class PhotoBrowserViewController: UIViewController, UICollectionViewDataSource, 
         uiCreated = true
     }
     
-    func photoLibraryDidChange(changeInstance: PHChange!)
+    func photoLibraryDidChange(changeInstance: PHChange)
     {
-        if uiCreated
-        {
-            let changeDetails = changeInstance.changeDetailsForFetchResult(assets)
-            
+        if let changeDetails = changeInstance.changeDetailsForFetchResult(assets) where assets != nil &&  uiCreated
+        {            
             executeInMainQueue({ self.assets = changeDetails.fetchResultAfterChanges })
         }
     }
@@ -205,8 +203,8 @@ class PhotoBrowserViewController: UIViewController, UICollectionViewDataSource, 
                 
                 if let popoverPresentationController = contextMenuController.popoverPresentationController
                 {
-                    popoverPresentationController.permittedArrowDirections = UIPopoverArrowDirection.Up | UIPopoverArrowDirection.Down
-                    popoverPresentationController.sourceRect = _longPressTarget.cell.frame.rectByOffsetting(dx: collectionViewWidget.frame.origin.x, dy: collectionViewWidget.frame.origin.y - collectionViewWidget.contentOffset.y)
+                    popoverPresentationController.permittedArrowDirections = [UIPopoverArrowDirection.Up, UIPopoverArrowDirection.Down]
+                    popoverPresentationController.sourceRect = _longPressTarget.cell.frame.offsetBy(dx: collectionViewWidget.frame.origin.x, dy: collectionViewWidget.frame.origin.y - collectionViewWidget.contentOffset.y)
                     
                     popoverPresentationController.sourceView = view
                     
@@ -219,13 +217,11 @@ class PhotoBrowserViewController: UIViewController, UICollectionViewDataSource, 
     
     func toggleFavourite(value: UIAlertAction!) -> Void
     {
-        if let _longPressTarget = longPressTarget
+        if let _longPressTarget = longPressTarget, targetEntity = assets[_longPressTarget.indexPath.row] as? PHAsset
         {
-            let targetEntity = assets[_longPressTarget.indexPath.row] as? PHAsset
-            
             PHPhotoLibrary.sharedPhotoLibrary().performChanges({
                 let changeRequest = PHAssetChangeRequest(forAsset: targetEntity)
-                changeRequest.favorite = !targetEntity!.favorite
+                changeRequest.favorite = !targetEntity.favorite
                 }, completionHandler: nil)
         }
     }
@@ -249,11 +245,11 @@ class PhotoBrowserViewController: UIViewController, UICollectionViewDataSource, 
         }
     }
     
-    func imageRequestResultHandler(image: UIImage!, properties: [NSObject: AnyObject]!) -> Void
+    func imageRequestResultHandler(image: UIImage?, properties: [NSObject: AnyObject]?) -> Void
     {
-        if let _delegate = delegate
+        if let delegate = delegate, image = image
         {
-            _delegate.photoBrowser(image)
+            delegate.photoBrowser(image)
         }
         
         dismissViewControllerAnimated(true, completion: nil)
@@ -280,7 +276,7 @@ class PhotoBrowserViewController: UIViewController, UICollectionViewDataSource, 
     {
         if uiCreated
         {
-            segmentedControl.frame = CGRect(x: 0, y: 0, width: view.frame.width, height: 40).rectByInsetting(dx: 5, dy: 5)
+            segmentedControl.frame = CGRect(x: 0, y: 0, width: view.frame.width, height: 40).insetBy(dx: 5, dy: 5)
             collectionViewWidget.frame = CGRect(x: 0, y: 40, width: view.frame.width, height: view.frame.height - 40)
         }
     }

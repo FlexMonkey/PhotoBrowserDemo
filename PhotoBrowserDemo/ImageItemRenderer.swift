@@ -29,7 +29,7 @@ class ImageItemRenderer: UICollectionViewCell, PHPhotoLibraryChangeObserver
         contentView.layer.cornerRadius = 5
         contentView.layer.masksToBounds = true
         
-        imageView.frame = bounds.rectByInsetting(dx: 0, dy: 0)
+        imageView.frame = bounds.insetBy(dx: 0, dy: 0)
         
         let labelFrame = CGRect(x: 0, y: frame.height - 20, width: frame.width, height: 20)
         
@@ -71,23 +71,23 @@ class ImageItemRenderer: UICollectionViewCell, PHPhotoLibraryChangeObserver
     
     func setLabel()
     {
-        if let _asset = asset
+        if let asset = asset, creationDate = asset.creationDate
         {
-            label.text = (_asset.favorite ? "★ " : "") + NSDateFormatter.localizedStringFromDate(_asset.creationDate, dateStyle: NSDateFormatterStyle.MediumStyle, timeStyle: NSDateFormatterStyle.NoStyle)
+            label.text = (asset.favorite ? "★ " : "") + NSDateFormatter.localizedStringFromDate(creationDate, dateStyle: NSDateFormatterStyle.MediumStyle, timeStyle: NSDateFormatterStyle.NoStyle)
         }
     }
     
-    func photoLibraryDidChange(changeInstance: PHChange!)
+    func photoLibraryDidChange(changeInstance: PHChange)
     {
         dispatch_async(dispatch_get_main_queue(), { self.setLabel() })
     }
     
-    func requestResultHandler (image: UIImage!, properties: [NSObject: AnyObject]!) -> Void
+    func requestResultHandler (image: UIImage?, properties: [NSObject: AnyObject]?) -> Void
     {
         imageView.image = image
     }
     
-    required init(coder aDecoder: NSCoder)
+    required init?(coder aDecoder: NSCoder)
     {
         fatalError("init(coder:) has not been implemented")
     }
