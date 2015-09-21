@@ -10,7 +10,8 @@ import UIKit
 
 class ViewController: UIViewController, PhotoBrowserDelegate
 {
-
+    let photoBrowserViewController = PhotoBrowserViewController()
+    
     let imageView: UIImageView = UIImageView(frame: CGRectZero)
     let launchBrowserButton: UIButton = UIButton(frame: CGRectZero)
     
@@ -31,8 +32,6 @@ class ViewController: UIViewController, PhotoBrowserDelegate
 
     func launchPhotoBrowser()
     {
-        let photoBrowserViewController = PhotoBrowserViewController()
-        
         photoBrowserViewController.delegate = self
         
         photoBrowserViewController.launch()
