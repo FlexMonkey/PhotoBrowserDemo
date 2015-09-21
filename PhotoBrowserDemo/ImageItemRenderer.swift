@@ -60,11 +60,11 @@ class ImageItemRenderer: UICollectionViewCell, PHPhotoLibraryChangeObserver
     {
         didSet
         {
-            if let _asset = asset
+            if let asset = asset
             {
                 setLabel()
                 
-                manager.requestImageForAsset(_asset, targetSize: PhotoBrowserConstants.thumbnailSize, contentMode: PHImageContentMode.AspectFill, options: requestOptions, resultHandler: requestResultHandler)
+                manager.requestImageForAsset(asset, targetSize: PhotoBrowserConstants.thumbnailSize, contentMode: PHImageContentMode.AspectFill, options: requestOptions, resultHandler: requestResultHandler)
             }
         }
     }
@@ -91,6 +91,5 @@ class ImageItemRenderer: UICollectionViewCell, PHPhotoLibraryChangeObserver
     {
         fatalError("init(coder:) has not been implemented")
     }
-    
 }
 

@@ -11,13 +11,16 @@
 import UIKit
 import Photos
 
-class PhotoBrowserViewController: UIViewController, UICollectionViewDataSource, UICollectionViewDelegate, PHPhotoLibraryChangeObserver
+class PhotoBrowserViewController: UIViewController
 {
     let manager = PHImageManager.defaultManager()
     
     var longPressTarget: (cell: UICollectionViewCell, indexPath: NSIndexPath)?
     var collectionViewWidget: UICollectionView!
     var segmentedControl: UISegmentedControl!
+    let blurOverlay = UIVisualEffectView(effect: UIBlurEffect())
+    let background = UIView(frame: CGRectZero)
+    
     var photoBrowserSelectedSegmentIndex = 0
 
     var assetCollections: PHFetchResult!
@@ -26,38 +29,41 @@ class PhotoBrowserViewController: UIViewController, UICollectionViewDataSource, 
     
     var uiCreated = false
     
-    var delegate: PhotoBrowserDelegate?
+    weak var delegate: PhotoBrowserDelegate?
     
-    func launch(size size: CGSize, view: UIView)
+    func launch()
     {
-        preferredContentSize = size
-        
-        let popoverController = UIPopoverController(contentViewController: self)
-        let popoverRect = view.frame.insetBy(dx: 0, dy: 0)
-        
-        popoverController.presentPopoverFromRect(popoverRect, inView: view, permittedArrowDirections: UIPopoverArrowDirection(), animated: true)
+        if let viewController = UIApplication.sharedApplication().keyWindow!.rootViewController
+        {
+            modalPresentationStyle = UIModalPresentationStyle.OverFullScreen
+            modalTransitionStyle = UIModalTransitionStyle.CrossDissolve
+            
+            viewController.presentViewController(self, animated: true, completion: nil)
+        }
     }
     
     var assets: PHFetchResult!
     {
         didSet
         {
-            if let _oldValue = oldValue
+            guard let oldValue = oldValue else
             {
-                if _oldValue.count - assets.count == 1
-                {
-                    collectionViewWidget.deleteItemsAtIndexPaths([longPressTarget!.indexPath])
-                    
-                    collectionViewWidget.reloadData()
-                }
-                else if _oldValue.count != assets.count
-                {
-                    UIView.animateWithDuration(PhotoBrowserConstants.animationDuration, animations: { self.collectionViewWidget.alpha = 0}, completion: fadeOutComplete)
-                }
-                else
-                {
-                    collectionViewWidget.reloadData()
-                }
+                return
+            }
+            
+            if oldValue.count - assets.count == 1
+            {
+                collectionViewWidget.deleteItemsAtIndexPaths([longPressTarget!.indexPath])
+                
+                collectionViewWidget.reloadData()
+            }
+            else if oldValue.count != assets.count
+            {
+                UIView.animateWithDuration(PhotoBrowserConstants.animationDuration, animations: { self.collectionViewWidget.alpha = 0}, completion: fadeOutComplete)
+            }
+            else
+            {
+                collectionViewWidget.reloadData()
             }
         }
     }
@@ -147,21 +153,22 @@ class PhotoBrowserViewController: UIViewController, UICollectionViewDataSource, 
         let longPress = UILongPressGestureRecognizer(target: self, action: "longPressHandler:")
         collectionViewWidget.addGestureRecognizer(longPress)
         
-        view.addSubview(collectionViewWidget)
+        background.layer.borderColor = UIColor.darkGrayColor().CGColor
+        background.layer.borderWidth = 1
+        background.layer.cornerRadius = 5
+        background.layer.masksToBounds = true
         
-        view.addSubview(segmentedControl)
+        view.addSubview(background)
+        
+        background.addSubview(blurOverlay)
+        background.addSubview(collectionViewWidget)
+        background.addSubview(segmentedControl)
+        
+        view.backgroundColor = UIColor(white: 0.5, alpha: 0.5)
         
         segmentedControlChangeHandler()
         
         uiCreated = true
-    }
-    
-    func photoLibraryDidChange(changeInstance: PHChange)
-    {
-        if let changeDetails = changeInstance.changeDetailsForFetchResult(assets) where assets != nil &&  uiCreated
-        {            
-            executeInMainQueue({ self.assets = changeDetails.fetchResultAfterChanges })
-        }
     }
     
     func segmentedControlChangeHandler()
@@ -190,40 +197,118 @@ class PhotoBrowserViewController: UIViewController, UICollectionViewDataSource, 
     
     func longPressHandler(recognizer: UILongPressGestureRecognizer)
     {
-        if recognizer.state == UIGestureRecognizerState.Began
+        guard let longPressTarget = longPressTarget,
+            entity = assets[longPressTarget.indexPath.row] as? PHAsset where
+            recognizer.state == UIGestureRecognizerState.Began else
         {
-            if let _longPressTarget = longPressTarget
-            {
-                let entity = assets[_longPressTarget.indexPath.row] as? PHAsset
-                
-                let contextMenuController = UIAlertController(title: nil, message: nil, preferredStyle: UIAlertControllerStyle.ActionSheet)
-                let toggleFavouriteAction = UIAlertAction(title: entity!.favorite ? "Remove Favourite" : "Make Favourite", style: UIAlertActionStyle.Default, handler: toggleFavourite)
-                
-                contextMenuController.addAction(toggleFavouriteAction)
-                
-                if let popoverPresentationController = contextMenuController.popoverPresentationController
-                {
-                    popoverPresentationController.permittedArrowDirections = [UIPopoverArrowDirection.Up, UIPopoverArrowDirection.Down]
-                    popoverPresentationController.sourceRect = _longPressTarget.cell.frame.offsetBy(dx: collectionViewWidget.frame.origin.x, dy: collectionViewWidget.frame.origin.y - collectionViewWidget.contentOffset.y)
-                    
-                    popoverPresentationController.sourceView = view
-                    
-                    presentViewController(contextMenuController, animated: true, completion: nil)
-                }
-            }
+            return
+        }
+        
+        let contextMenuController = UIAlertController(title: nil, message: nil, preferredStyle: UIAlertControllerStyle.ActionSheet)
+        let toggleFavouriteAction = UIAlertAction(title: entity.favorite ? "Remove Favourite" : "Make Favourite", style: UIAlertActionStyle.Default, handler: toggleFavourite)
+        
+        contextMenuController.addAction(toggleFavouriteAction)
+        
+        if let popoverPresentationController = contextMenuController.popoverPresentationController
+        {
+            popoverPresentationController.permittedArrowDirections = [UIPopoverArrowDirection.Up, UIPopoverArrowDirection.Down]
+            popoverPresentationController.sourceRect = longPressTarget.cell.frame.offsetBy(dx: collectionViewWidget.frame.origin.x, dy: collectionViewWidget.frame.origin.y - collectionViewWidget.contentOffset.y)
+            
+            popoverPresentationController.sourceView = view
+            
+            presentViewController(contextMenuController, animated: true, completion: nil)
         }
     }
-    
     
     func toggleFavourite(value: UIAlertAction!) -> Void
     {
         if let _longPressTarget = longPressTarget, targetEntity = assets[_longPressTarget.indexPath.row] as? PHAsset
         {
-            PHPhotoLibrary.sharedPhotoLibrary().performChanges({
-                let changeRequest = PHAssetChangeRequest(forAsset: targetEntity)
-                changeRequest.favorite = !targetEntity.favorite
-                }, completionHandler: nil)
+            PHPhotoLibrary.sharedPhotoLibrary().performChanges(
+                {
+                    let changeRequest = PHAssetChangeRequest(forAsset: targetEntity)
+                    changeRequest.favorite = !targetEntity.favorite
+                },
+                completionHandler: nil)
         }
+    }
+    
+    func imageRequestResultHandler(image: UIImage?, properties: [NSObject: AnyObject]?) -> Void
+    {
+        if let delegate = delegate, image = image
+        {
+            delegate.photoBrowser(image)
+        }
+        
+        dismissViewControllerAnimated(true, completion: nil)
+    }
+    
+    override func viewDidLayoutSubviews()
+    {
+        if uiCreated
+        {
+            background.frame = view.frame.insetBy(dx: 50, dy: 50)
+            blurOverlay.frame = CGRect(x: 0, y: 0, width: background.frame.width, height: background.frame.height)
+            
+            segmentedControl.frame = CGRect(x: 0, y: 0, width: background.frame.width, height: 40).insetBy(dx: 5, dy: 5)
+            collectionViewWidget.frame = CGRect(x: 0, y: 40, width: background.frame.width, height: background.frame.height - 40)
+        }
+    }
+    
+    deinit
+    {
+        print("deinit MIAN")
+        
+        PHPhotoLibrary.sharedPhotoLibrary().unregisterChangeObserver(self)
+    }
+    
+    func executeInMainQueue(function: () -> Void)
+    {
+        dispatch_async(dispatch_get_main_queue(), function)
+    }
+}
+
+// MARK: PHPhotoLibraryChangeObserver
+
+extension PhotoBrowserViewController: PHPhotoLibraryChangeObserver
+{
+    func photoLibraryDidChange(changeInstance: PHChange)
+    {
+        guard let assets = assets else
+        {
+            return
+        }
+        
+        if let changeDetails = changeInstance.changeDetailsForFetchResult(assets) where uiCreated
+        {
+            executeInMainQueue{ self.assets = changeDetails.fetchResultAfterChanges }
+        }
+    }
+}
+
+// MARK: UICollectionViewDataSource
+
+extension PhotoBrowserViewController: UICollectionViewDataSource
+{
+    func collectionView(collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int
+    {
+        return assets.count
+    }
+}
+
+// MARK: UICollectionViewDelegate
+
+extension PhotoBrowserViewController: UICollectionViewDelegate
+{
+    func collectionView(collectionView: UICollectionView, cellForItemAtIndexPath indexPath: NSIndexPath) -> UICollectionViewCell
+    {
+        let cell = collectionView.dequeueReusableCellWithReuseIdentifier("Cell", forIndexPath: indexPath) as! ImageItemRenderer
+        
+        let asset = assets[indexPath.row] as! PHAsset
+        
+        cell.asset = asset;
+        
+        return cell
     }
     
     func collectionView(collectionView: UICollectionView, didHighlightItemAtIndexPath indexPath: NSIndexPath)
@@ -243,52 +328,6 @@ class PhotoBrowserViewController: UIViewController, UICollectionViewDataSource, 
             
             manager.requestImageForAsset(selectedAsset, targetSize: targetSize, contentMode: PHImageContentMode.AspectFill, options: requestOptions, resultHandler: imageRequestResultHandler)
         }
-    }
-    
-    func imageRequestResultHandler(image: UIImage?, properties: [NSObject: AnyObject]?) -> Void
-    {
-        if let delegate = delegate, image = image
-        {
-            delegate.photoBrowser(image)
-        }
-        
-        dismissViewControllerAnimated(true, completion: nil)
-    }
-    
-    
-    func collectionView(collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int
-    {
-        return assets.count
-    }
-    
-    func collectionView(collectionView: UICollectionView, cellForItemAtIndexPath indexPath: NSIndexPath) -> UICollectionViewCell
-    {
-        let cell = collectionView.dequeueReusableCellWithReuseIdentifier("Cell", forIndexPath: indexPath) as! ImageItemRenderer
-        
-        let asset = assets[indexPath.row] as! PHAsset
-        
-        cell.asset = asset;
-        
-        return cell
-    }
-    
-    override func viewDidLayoutSubviews()
-    {
-        if uiCreated
-        {
-            segmentedControl.frame = CGRect(x: 0, y: 0, width: view.frame.width, height: 40).insetBy(dx: 5, dy: 5)
-            collectionViewWidget.frame = CGRect(x: 0, y: 40, width: view.frame.width, height: view.frame.height - 40)
-        }
-    }
-    
-    deinit
-    {
-        PHPhotoLibrary.sharedPhotoLibrary().unregisterChangeObserver(self)
-    }
-    
-    func executeInMainQueue(function: () -> Void)
-    {
-        dispatch_async(dispatch_get_main_queue(), function)
     }
 }
 

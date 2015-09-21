@@ -9,7 +9,7 @@
 import Foundation
 import UIKit
 
-protocol PhotoBrowserDelegate
+protocol PhotoBrowserDelegate: NSObjectProtocol
 {
     func photoBrowser(didSelectImage: UIImage)
 }

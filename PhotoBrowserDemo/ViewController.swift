@@ -35,7 +35,7 @@ class ViewController: UIViewController, PhotoBrowserDelegate
         
         photoBrowserViewController.delegate = self
         
-        photoBrowserViewController.launch(size: CGSize(width: view.frame.width - 100, height: view.frame.height - 100), view: view)
+        photoBrowserViewController.launch()
     }
     
     func photoBrowser(didSelectImage: UIImage)
