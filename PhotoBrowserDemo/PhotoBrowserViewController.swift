@@ -171,6 +171,17 @@ class PhotoBrowserViewController: UIViewController
         uiCreated = true
     }
     
+    override func touchesBegan(touches: Set<UITouch>, withEvent event: UIEvent?)
+    {
+        super.touchesBegan(touches, withEvent: event)
+        
+        if let locationInView = touches.first?.locationInView(view) where
+            !background.frame.contains(locationInView)
+        {
+            dismissViewControllerAnimated(true, completion: nil)
+        }
+    }
+    
     func segmentedControlChangeHandler()
     {
         contentOffsets[photoBrowserSelectedSegmentIndex] = collectionViewWidget.contentOffset
@@ -211,8 +222,8 @@ class PhotoBrowserViewController: UIViewController
         
         if let popoverPresentationController = contextMenuController.popoverPresentationController
         {
-            popoverPresentationController.permittedArrowDirections = [UIPopoverArrowDirection.Up, UIPopoverArrowDirection.Down]
-            popoverPresentationController.sourceRect = longPressTarget.cell.frame.offsetBy(dx: collectionViewWidget.frame.origin.x, dy: collectionViewWidget.frame.origin.y - collectionViewWidget.contentOffset.y)
+            popoverPresentationController.permittedArrowDirections = [ UIPopoverArrowDirection.Down]
+            popoverPresentationController.sourceRect = CGRect(origin: recognizer.locationInView(self.view), size: CGSize(width: 0, height: 0))
             
             popoverPresentationController.sourceView = view
             
@@ -333,6 +344,6 @@ extension PhotoBrowserViewController: UICollectionViewDelegate
 
 struct PhotoBrowserConstants
 {
-    static let thumbnailSize = CGSize(width: 200, height: 200)
+    static let thumbnailSize = CGSize(width: 150, height: 150)
     static let animationDuration = 0.175
 }
