@@ -95,11 +95,11 @@ class PhotoBrowserViewController: UIViewController
     {
         if PHPhotoLibrary.authorizationStatus() == PHAuthorizationStatus.Authorized
         {
-            executeInMainQueue({ self.createUserInterface() })
+            PhotoBrowserViewController.executeInMainQueue({ self.createUserInterface() })
         }
         else
         {
-            executeInMainQueue({ self.dismissViewControllerAnimated(true, completion: nil) })
+            PhotoBrowserViewController.executeInMainQueue({ self.dismissViewControllerAnimated(true, completion: nil) })
         }
     }
     
@@ -273,7 +273,7 @@ class PhotoBrowserViewController: UIViewController
         PHPhotoLibrary.sharedPhotoLibrary().unregisterChangeObserver(self)
     }
     
-    func executeInMainQueue(function: () -> Void)
+    static func executeInMainQueue(function: () -> Void)
     {
         dispatch_async(dispatch_get_main_queue(), function)
     }
@@ -292,7 +292,7 @@ extension PhotoBrowserViewController: PHPhotoLibraryChangeObserver
         
         if let changeDetails = changeInstance.changeDetailsForFetchResult(assets) where uiCreated
         {
-            executeInMainQueue{ self.assets = changeDetails.fetchResultAfterChanges }
+            PhotoBrowserViewController.executeInMainQueue{ self.assets = changeDetails.fetchResultAfterChanges }
         }
     }
 }

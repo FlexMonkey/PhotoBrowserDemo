@@ -19,6 +19,8 @@ class ImageItemRenderer: UICollectionViewCell, PHPhotoLibraryChangeObserver
     let deliveryOptions = PHImageRequestOptionsDeliveryMode.Opportunistic
     let requestOptions = PHImageRequestOptions()
     
+    let priority = DISPATCH_QUEUE_PRIORITY_DEFAULT
+    
     override init(frame: CGRect)
     {
         super.init(frame: frame)
@@ -62,9 +64,15 @@ class ImageItemRenderer: UICollectionViewCell, PHPhotoLibraryChangeObserver
         {
             if let asset = asset
             {
-                setLabel()
-                
-                manager.requestImageForAsset(asset, targetSize: PhotoBrowserConstants.thumbnailSize, contentMode: PHImageContentMode.AspectFill, options: requestOptions, resultHandler: requestResultHandler)
+                dispatch_async(dispatch_get_global_queue(priority, 0))
+                {
+                    self.setLabel()
+                    self.manager.requestImageForAsset(asset,
+                        targetSize: PhotoBrowserConstants.thumbnailSize,
+                        contentMode: PHImageContentMode.AspectFill,
+                        options: self.requestOptions,
+                        resultHandler: self.requestResultHandler)
+                }
             }
         }
     }
@@ -73,7 +81,9 @@ class ImageItemRenderer: UICollectionViewCell, PHPhotoLibraryChangeObserver
     {
         if let asset = asset, creationDate = asset.creationDate
         {
-            label.text = (asset.favorite ? "★ " : "") + NSDateFormatter.localizedStringFromDate(creationDate, dateStyle: NSDateFormatterStyle.MediumStyle, timeStyle: NSDateFormatterStyle.NoStyle)
+            let text = (asset.favorite ? "★ " : "") + NSDateFormatter.localizedStringFromDate(creationDate, dateStyle: NSDateFormatterStyle.MediumStyle, timeStyle: NSDateFormatterStyle.NoStyle)
+            
+            PhotoBrowserViewController.executeInMainQueue({self.label.text = text})
         }
     }
     
@@ -84,7 +94,7 @@ class ImageItemRenderer: UICollectionViewCell, PHPhotoLibraryChangeObserver
     
     func requestResultHandler (image: UIImage?, properties: [NSObject: AnyObject]?) -> Void
     {
-        imageView.image = image
+        PhotoBrowserViewController.executeInMainQueue({self.imageView.image = image})
     }
     
     required init?(coder aDecoder: NSCoder)
