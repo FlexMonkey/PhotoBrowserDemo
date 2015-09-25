@@ -5,6 +5,7 @@ Original blog post: http://flexmonkey.blogspot.co.uk/2015/01/creating-phimageman
 
 *This project has now been updated to work under Swift 2.0 / Xcode 7 and can target both iPads and iPhones*
 
+*Updated to use peek and pop under 6s - explanatory blog post coming soon!*
 
 One of the side effects of using PHImageManager for asset management in Nodality is that I can no longer use UIImagePickerController to allow my users to select their images. Therefore, I’ve spent some time creating an image browser/picker to work with PHImageManager which, as a stand alone component, I thought I’d share (GitHub repo is here).
 
