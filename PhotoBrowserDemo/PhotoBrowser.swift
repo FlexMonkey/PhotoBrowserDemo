@@ -11,15 +11,17 @@
 import UIKit
 import Photos
 
-class PhotoBrowserViewController: UIViewController
+class PhotoBrowser: UIViewController
 {
     let manager = PHImageManager.defaultManager()
-    
+    let requestOptions = PHImageRequestOptions()
+
     var longPressTarget: (cell: UICollectionViewCell, indexPath: NSIndexPath)?
     var collectionViewWidget: UICollectionView!
     var segmentedControl: UISegmentedControl!
     let blurOverlay = UIVisualEffectView(effect: UIBlurEffect())
     let background = UIView(frame: CGRectZero)
+    let activityIndicator = UIActivityIndicatorView(activityIndicatorStyle: UIActivityIndicatorViewStyle.WhiteLarge)
     
     var photoBrowserSelectedSegmentIndex = 0
 
@@ -27,9 +29,28 @@ class PhotoBrowserViewController: UIViewController
     var segmentedControlItems = [String]()
     var contentOffsets = [CGPoint]()
     
+    var selectedAsset: PHAsset?
     var uiCreated = false
     
+    var returnImageSize = CGSize(width: 100, height: 100)
+    
     weak var delegate: PhotoBrowserDelegate?
+    
+    required init(returnImageSize: CGSize)
+    {
+        super.init(nibName: nil, bundle: nil)
+        
+        self.returnImageSize = returnImageSize
+        
+        requestOptions.deliveryMode = PHImageRequestOptionsDeliveryMode.HighQualityFormat
+        requestOptions.resizeMode = PHImageRequestOptionsResizeMode.Exact
+        requestOptions.networkAccessAllowed = true
+    }
+
+    required init?(coder aDecoder: NSCoder)
+    {
+        fatalError("init(coder:) has not been implemented")
+    }
     
     func launch()
     {
@@ -59,7 +80,18 @@ class PhotoBrowserViewController: UIViewController
             }
             else if oldValue.count != assets.count
             {
-                UIView.animateWithDuration(PhotoBrowserConstants.animationDuration, animations: { self.collectionViewWidget.alpha = 0}, completion: fadeOutComplete)
+                UIView.animateWithDuration(PhotoBrowserConstants.animationDuration,
+                    animations:
+                    {
+                        self.collectionViewWidget.alpha = 0
+                    },
+                    completion:
+                    {
+                        (value: Bool) in
+                        self.collectionViewWidget.reloadData()
+                        self.collectionViewWidget.contentOffset = self.contentOffsets[self.segmentedControl.selectedSegmentIndex]
+                        UIView.animateWithDuration(PhotoBrowserConstants.animationDuration, animations: { self.collectionViewWidget.alpha = 1.0 })
+                    })
             }
             else
             {
@@ -67,14 +99,7 @@ class PhotoBrowserViewController: UIViewController
             }
         }
     }
-    
-    func fadeOutComplete(value: Bool)
-    {
-        collectionViewWidget.reloadData()
-        collectionViewWidget.contentOffset = contentOffsets[segmentedControl.selectedSegmentIndex]
-        UIView.animateWithDuration(PhotoBrowserConstants.animationDuration, animations: { self.collectionViewWidget.alpha = 1.0 })
-    }
-        
+
     override func viewDidLoad()
     {
         super.viewDidLoad()
@@ -95,11 +120,11 @@ class PhotoBrowserViewController: UIViewController
     {
         if PHPhotoLibrary.authorizationStatus() == PHAuthorizationStatus.Authorized
         {
-            PhotoBrowserViewController.executeInMainQueue({ self.createUserInterface() })
+            PhotoBrowser.executeInMainQueue({ self.createUserInterface() })
         }
         else
         {
-            PhotoBrowserViewController.executeInMainQueue({ self.dismissViewControllerAnimated(true, completion: nil) })
+            PhotoBrowser.executeInMainQueue({ self.dismissViewControllerAnimated(true, completion: nil) })
         }
     }
     
@@ -166,10 +191,16 @@ class PhotoBrowserViewController: UIViewController
         
         view.backgroundColor = UIColor(white: 0.5, alpha: 0.5)
         
+        activityIndicator.layer.backgroundColor = UIColor(white: 0.33, alpha: 0.33).CGColor
+        activityIndicator.frame = CGRect(origin: CGPointZero, size: view.frame.size)
+        view.addSubview(activityIndicator)
+        
         segmentedControlChangeHandler()
         
         uiCreated = true
     }
+    
+    // MARK: User interaction handling
     
     override func touchesBegan(touches: Set<UITouch>, withEvent event: UIEvent?)
     {
@@ -204,6 +235,8 @@ class PhotoBrowserViewController: UIViewController
                 }
             }
         }
+        
+        selectedAsset = nil
     }
     
     func longPressHandler(recognizer: UILongPressGestureRecognizer)
@@ -244,15 +277,37 @@ class PhotoBrowserViewController: UIViewController
         }
     }
     
-    func imageRequestResultHandler(image: UIImage?, properties: [NSObject: AnyObject]?) -> Void
+    // MARK: Image management
+    
+    func requestImageForAsset(asset: PHAsset)
     {
-        if let delegate = delegate, image = image
+        activityIndicator.startAnimating()
+        
+        selectedAsset = asset
+        
+        manager.requestImageForAsset(asset,
+            targetSize: returnImageSize,
+            contentMode: PHImageContentMode.AspectFill,
+            options: requestOptions,
+            resultHandler: imageRequestResultHandler)
+    }
+    
+    func imageRequestResultHandler(image: UIImage?, properties: [NSObject: AnyObject]?)
+    {
+        if let delegate = delegate, image = image, selectedAssetLocalIdentifier = selectedAsset?.localIdentifier
         {
-            delegate.photoBrowser(image)
+            PhotoBrowser.executeInMainQueue
+            {
+                delegate.photoBrowserDidSelectImage(image, localIdentifier: selectedAssetLocalIdentifier)
+            }
         }
         
+        activityIndicator.stopAnimating()
+        selectedAsset = nil
         dismissViewControllerAnimated(true, completion: nil)
     }
+
+    // MARK: System Layout
     
     override func viewDidLayoutSubviews()
     {
@@ -268,8 +323,6 @@ class PhotoBrowserViewController: UIViewController
     
     deinit
     {
-        print("deinit MIAN")
-        
         PHPhotoLibrary.sharedPhotoLibrary().unregisterChangeObserver(self)
     }
     
@@ -281,7 +334,7 @@ class PhotoBrowserViewController: UIViewController
 
 // MARK: PHPhotoLibraryChangeObserver
 
-extension PhotoBrowserViewController: PHPhotoLibraryChangeObserver
+extension PhotoBrowser: PHPhotoLibraryChangeObserver
 {
     func photoLibraryDidChange(changeInstance: PHChange)
     {
@@ -292,14 +345,14 @@ extension PhotoBrowserViewController: PHPhotoLibraryChangeObserver
         
         if let changeDetails = changeInstance.changeDetailsForFetchResult(assets) where uiCreated
         {
-            PhotoBrowserViewController.executeInMainQueue{ self.assets = changeDetails.fetchResultAfterChanges }
+            PhotoBrowser.executeInMainQueue{ self.assets = changeDetails.fetchResultAfterChanges }
         }
     }
 }
 
 // MARK: UICollectionViewDataSource
 
-extension PhotoBrowserViewController: UICollectionViewDataSource
+extension PhotoBrowser: UICollectionViewDataSource
 {
     func collectionView(collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int
     {
@@ -309,7 +362,7 @@ extension PhotoBrowserViewController: UICollectionViewDataSource
 
 // MARK: UICollectionViewDelegate
 
-extension PhotoBrowserViewController: UICollectionViewDelegate
+extension PhotoBrowser: UICollectionViewDelegate
 {
     func collectionView(collectionView: UICollectionView, cellForItemAtIndexPath indexPath: NSIndexPath) -> UICollectionViewCell
     {
@@ -329,15 +382,9 @@ extension PhotoBrowserViewController: UICollectionViewDelegate
     
     func collectionView(collectionView: UICollectionView, didSelectItemAtIndexPath indexPath: NSIndexPath)
     {
-        if let selectedAsset = assets[indexPath.row] as? PHAsset
+        if let asset = assets[indexPath.row] as? PHAsset
         {
-            let targetSize = CGSize(width: selectedAsset.pixelWidth, height: selectedAsset.pixelHeight)
-            let deliveryOptions = PHImageRequestOptionsDeliveryMode.HighQualityFormat
-            let requestOptions = PHImageRequestOptions()
-            
-            requestOptions.deliveryMode = deliveryOptions
-            
-            manager.requestImageForAsset(selectedAsset, targetSize: targetSize, contentMode: PHImageContentMode.AspectFill, options: requestOptions, resultHandler: imageRequestResultHandler)
+            requestImageForAsset(asset)
         }
     }
 }

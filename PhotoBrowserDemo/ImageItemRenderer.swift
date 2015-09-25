@@ -83,7 +83,7 @@ class ImageItemRenderer: UICollectionViewCell, PHPhotoLibraryChangeObserver
         {
             let text = (asset.favorite ? "★ " : "") + NSDateFormatter.localizedStringFromDate(creationDate, dateStyle: NSDateFormatterStyle.MediumStyle, timeStyle: NSDateFormatterStyle.NoStyle)
             
-            PhotoBrowserViewController.executeInMainQueue({self.label.text = text})
+            PhotoBrowser.executeInMainQueue({self.label.text = text})
         }
     }
     
@@ -91,10 +91,10 @@ class ImageItemRenderer: UICollectionViewCell, PHPhotoLibraryChangeObserver
     {
         dispatch_async(dispatch_get_main_queue(), { self.setLabel() })
     }
-    
+
     func requestResultHandler (image: UIImage?, properties: [NSObject: AnyObject]?) -> Void
     {
-        PhotoBrowserViewController.executeInMainQueue({self.imageView.image = image})
+        PhotoBrowser.executeInMainQueue({self.imageView.image = image})
     }
     
     required init?(coder aDecoder: NSCoder)

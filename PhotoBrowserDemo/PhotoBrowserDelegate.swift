@@ -11,5 +11,5 @@ import UIKit
 
 protocol PhotoBrowserDelegate: NSObjectProtocol
 {
-    func photoBrowser(didSelectImage: UIImage)
+    func photoBrowserDidSelectImage(image: UIImage, localIdentifier: String)
 }
