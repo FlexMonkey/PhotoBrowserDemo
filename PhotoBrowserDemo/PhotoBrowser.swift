@@ -180,10 +180,17 @@ class PhotoBrowser: UIViewController
         collectionViewWidget.dataSource = self
         collectionViewWidget.registerClass(ImageItemRenderer.self, forCellWithReuseIdentifier: "Cell")
         collectionViewWidget.contentInset = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 0)
-        
-        let longPress = UILongPressGestureRecognizer(target: self, action: "longPressHandler:")
-        collectionViewWidget.addGestureRecognizer(longPress)
-        
+   
+        if UIApplication.sharedApplication().keyWindow?.traitCollection.forceTouchCapability == UIForceTouchCapability.Available
+        {
+            registerForPreviewingWithDelegate(self, sourceView: view)
+        }
+        else
+        {
+            let longPress = UILongPressGestureRecognizer(target: self, action: "longPressHandler:")
+            collectionViewWidget.addGestureRecognizer(longPress)
+        }
+            
         background.layer.borderColor = UIColor.darkGrayColor().CGColor
         background.layer.borderWidth = 1
         background.layer.cornerRadius = 5
@@ -247,14 +254,14 @@ class PhotoBrowser: UIViewController
     func longPressHandler(recognizer: UILongPressGestureRecognizer)
     {
         guard let longPressTarget = longPressTarget,
-            entity = assets[longPressTarget.indexPath.row] as? PHAsset where
+            asset = assets[longPressTarget.indexPath.row] as? PHAsset where
             recognizer.state == UIGestureRecognizerState.Began else
         {
             return
         }
         
         let contextMenuController = UIAlertController(title: nil, message: nil, preferredStyle: UIAlertControllerStyle.ActionSheet)
-        let toggleFavouriteAction = UIAlertAction(title: entity.favorite ? "Remove Favourite" : "Make Favourite", style: UIAlertActionStyle.Default, handler: toggleFavourite)
+        let toggleFavouriteAction = UIAlertAction(title: asset.favorite ? "Remove Favourite" : "Make Favourite", style: UIAlertActionStyle.Default, handler: toggleFavourite)
         
         contextMenuController.addAction(toggleFavouriteAction)
         
@@ -269,9 +276,9 @@ class PhotoBrowser: UIViewController
         presentViewController(contextMenuController, animated: true, completion: nil)
     }
     
-    func toggleFavourite(value: UIAlertAction!) -> Void
+    func toggleFavourite(_: UIAlertAction!) -> Void
     {
-        if let _longPressTarget = longPressTarget, targetEntity = assets[_longPressTarget.indexPath.row] as? PHAsset
+        if let longPressTarget = longPressTarget, targetEntity = assets[longPressTarget.indexPath.row] as? PHAsset
         {
             PHPhotoLibrary.sharedPhotoLibrary().performChanges(
                 {
@@ -306,6 +313,7 @@ class PhotoBrowser: UIViewController
                 delegate.photoBrowserDidSelectImage(image, localIdentifier: selectedAssetLocalIdentifier)
             }
         }
+        // TODO : Handle no image case (asset is broken in iOS)
         
         activityIndicator.stopAnimating()
         selectedAsset = nil
@@ -394,6 +402,98 @@ extension PhotoBrowser: UICollectionViewDelegate
         }
     }
 }
+
+// MARK:
+
+extension PhotoBrowser: UIViewControllerPreviewingDelegate
+{
+    func previewingContext(previewingContext: UIViewControllerPreviewing, viewControllerForLocation location: CGPoint) -> UIViewController?
+    {
+        guard let longPressTarget = longPressTarget,
+            asset = assets[longPressTarget.indexPath.row] as? PHAsset else
+        {
+            return nil
+        }
+        
+        let peekController = PeekViewController(frame: CGRect(x: 0, y: 0,
+            width: PhotoBrowserConstants.thumbnailSize.width * 4,
+            height: PhotoBrowserConstants.thumbnailSize.height * 4))
+
+        peekController.asset = asset
+        
+        return peekController
+    }
+    
+    func previewingContext(previewingContext: UIViewControllerPreviewing, commitViewController viewControllerToCommit: UIViewController)
+    {
+        guard let longPressTarget = longPressTarget,
+            asset = assets[longPressTarget.indexPath.row] as? PHAsset else
+        {
+            dismissViewControllerAnimated(true, completion: nil)
+            
+            return
+        }
+        
+        requestImageForAsset(asset)
+    }
+}
+
+class PeekViewController: UIViewController
+{
+    let itemRenderer: ImageItemRenderer
+    
+    required init(frame: CGRect)
+    {
+        itemRenderer = ImageItemRenderer(frame: frame)
+        
+        super.init(nibName: nil, bundle: nil)
+        
+        preferredContentSize = frame.size
+        
+        view.addSubview(itemRenderer)
+    }
+
+    required init?(coder aDecoder: NSCoder)
+    {
+        fatalError("init(coder:) has not been implemented")
+    }
+ 
+    func toggleFavourite()
+    {
+        if let targetEntity = asset
+        {
+            PHPhotoLibrary.sharedPhotoLibrary().performChanges(
+                {
+                    let changeRequest = PHAssetChangeRequest(forAsset: targetEntity)
+                    changeRequest.favorite = !targetEntity.favorite
+                },
+                completionHandler: nil)
+        }
+    }
+    
+    var previewActions: [UIPreviewActionItem]
+    {
+        return [UIPreviewAction(title: asset!.favorite ? "Remove Favourite" : "Make Favourite",
+            style: UIPreviewActionStyle.Default,
+            handler:
+            {
+                (previewAction, viewController) in (viewController as? PeekViewController)?.toggleFavourite()
+            })]
+    }
+    
+    var asset: PHAsset?
+    {
+        didSet
+        {
+            if let asset = asset
+            {
+                itemRenderer.asset = asset;
+            }
+        }
+    }
+}
+
+// MARK: ActivityIndicator overlay
 
 class ActivityIndicator: UIView
 {

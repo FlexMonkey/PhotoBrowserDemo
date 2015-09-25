@@ -31,14 +31,8 @@ class ImageItemRenderer: UICollectionViewCell, PHPhotoLibraryChangeObserver
         contentView.layer.cornerRadius = 5
         contentView.layer.masksToBounds = true
         
-        imageView.frame = bounds.insetBy(dx: 0, dy: 0)
-        
-        let labelFrame = CGRect(x: 0, y: frame.height - 20, width: frame.width, height: 20)
-        
-        blurOverlay.frame = labelFrame
-        
         label.numberOfLines = 0
-        label.frame = labelFrame
+  
         label.adjustsFontSizeToFitWidth = true
         label.textAlignment = NSTextAlignment.Center
         
@@ -51,6 +45,16 @@ class ImageItemRenderer: UICollectionViewCell, PHPhotoLibraryChangeObserver
         layer.cornerRadius = 5
         
         PHPhotoLibrary.sharedPhotoLibrary().registerChangeObserver(self)
+    }
+    
+    override func layoutSubviews()
+    {
+        imageView.frame = bounds
+        
+        let labelFrame = CGRect(x: 0, y: frame.height - 20, width: frame.width, height: 20)
+        
+        blurOverlay.frame = labelFrame
+        label.frame = labelFrame
     }
     
     deinit
@@ -68,7 +72,7 @@ class ImageItemRenderer: UICollectionViewCell, PHPhotoLibraryChangeObserver
                 {
                     self.setLabel()
                     self.manager.requestImageForAsset(asset,
-                        targetSize: PhotoBrowserConstants.thumbnailSize,
+                        targetSize: self.frame.size,
                         contentMode: PHImageContentMode.AspectFill,
                         options: self.requestOptions,
                         resultHandler: self.requestResultHandler)
