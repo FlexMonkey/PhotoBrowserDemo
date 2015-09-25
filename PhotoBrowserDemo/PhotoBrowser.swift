@@ -21,7 +21,7 @@ class PhotoBrowser: UIViewController
     var segmentedControl: UISegmentedControl!
     let blurOverlay = UIVisualEffectView(effect: UIBlurEffect())
     let background = UIView(frame: CGRectZero)
-    let activityIndicator = UIActivityIndicatorView(activityIndicatorStyle: UIActivityIndicatorViewStyle.WhiteLarge)
+    let activityIndicator = ActivityIndicator()
     
     var photoBrowserSelectedSegmentIndex = 0
 
@@ -45,6 +45,10 @@ class PhotoBrowser: UIViewController
         requestOptions.deliveryMode = PHImageRequestOptionsDeliveryMode.HighQualityFormat
         requestOptions.resizeMode = PHImageRequestOptionsResizeMode.Exact
         requestOptions.networkAccessAllowed = true
+        requestOptions.progressHandler = {
+            (value: Double, _: NSError?, _ : UnsafeMutablePointer<ObjCBool>, _ : [NSObject : AnyObject]?) in
+            self.activityIndicator.updateProgress(value)
+        }
     }
 
     required init?(coder aDecoder: NSCoder)
@@ -60,6 +64,8 @@ class PhotoBrowser: UIViewController
             modalTransitionStyle = UIModalTransitionStyle.CrossDissolve
             
             viewController.presentViewController(self, animated: true, completion: nil)
+            
+            activityIndicator.stopAnimating()
         }
     }
     
@@ -189,9 +195,8 @@ class PhotoBrowser: UIViewController
         background.addSubview(collectionViewWidget)
         background.addSubview(segmentedControl)
         
-        view.backgroundColor = UIColor(white: 0.5, alpha: 0.5)
+        view.backgroundColor = UIColor(white: 0.15, alpha: 0.85)
         
-        activityIndicator.layer.backgroundColor = UIColor(white: 0.33, alpha: 0.33).CGColor
         activityIndicator.frame = CGRect(origin: CGPointZero, size: view.frame.size)
         view.addSubview(activityIndicator)
         
@@ -314,6 +319,7 @@ class PhotoBrowser: UIViewController
         if uiCreated
         {
             background.frame = view.frame.insetBy(dx: 50, dy: 50)
+            activityIndicator.frame = view.frame.insetBy(dx: 50, dy: 50)
             blurOverlay.frame = CGRect(x: 0, y: 0, width: background.frame.width, height: background.frame.height)
             
             segmentedControl.frame = CGRect(x: 0, y: 0, width: background.frame.width, height: 40).insetBy(dx: 5, dy: 5)
@@ -386,6 +392,73 @@ extension PhotoBrowser: UICollectionViewDelegate
         {
             requestImageForAsset(asset)
         }
+    }
+}
+
+class ActivityIndicator: UIView
+{
+    let activityIndicator = UIActivityIndicatorView(activityIndicatorStyle: UIActivityIndicatorViewStyle.WhiteLarge)
+    let label = UILabel()
+    
+    override init(frame: CGRect)
+    {
+        super.init(frame: frame)
+        
+        addSubview(activityIndicator)
+        addSubview(label)
+        
+        backgroundColor = UIColor(white: 0.15, alpha: 0.85)
+        label.textColor = UIColor.whiteColor()
+        label.textAlignment = NSTextAlignment.Center
+        
+        label.text = "Loading..."
+        
+        stopAnimating()
+    }
+
+    override func layoutSubviews()
+    {
+        activityIndicator.frame = CGRect(origin: CGPointZero, size: frame.size)
+        
+        label.frame = CGRect(x: 0,
+            y: label.intrinsicContentSize().height,
+            width: frame.width,
+            height: label.intrinsicContentSize().height)
+    }
+    
+    func updateProgress(value: Double)
+    {
+        PhotoBrowser.executeInMainQueue
+        {
+            self.label.text = "Loading \(Int(value * 100))%"
+        }
+    }
+    
+    func startAnimating()
+    {
+        activityIndicator.startAnimating()
+        
+        NSTimer.scheduledTimerWithTimeInterval(0.25, target: self, selector: "show", userInfo: nil, repeats: false)
+    }
+    
+    func show()
+    {
+        PhotoBrowser.executeInMainQueue
+        {
+            self.label.text = "Loading..."
+            self.hidden = false
+        }
+    }
+    
+    func stopAnimating()
+    {
+        hidden = true
+        activityIndicator.stopAnimating()
+    }
+    
+    required init?(coder aDecoder: NSCoder)
+    {
+        fatalError("init(coder:) has not been implemented")
     }
 }
 
