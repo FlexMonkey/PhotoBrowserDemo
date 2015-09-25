@@ -415,9 +415,11 @@ extension PhotoBrowser: UIViewControllerPreviewingDelegate
             return nil
         }
         
+        let previewSize = min(view.frame.width, view.frame.height) * 0.8
+        
         let peekController = PeekViewController(frame: CGRect(x: 0, y: 0,
-            width: PhotoBrowserConstants.thumbnailSize.width * 4,
-            height: PhotoBrowserConstants.thumbnailSize.height * 4))
+            width: previewSize,
+            height: previewSize))
 
         peekController.asset = asset
         
@@ -564,6 +566,6 @@ class ActivityIndicator: UIView
 
 struct PhotoBrowserConstants
 {
-    static let thumbnailSize = CGSize(width: 150, height: 150)
+    static let thumbnailSize = CGSize(width: 100, height: 100)
     static let animationDuration = 0.175
 }
