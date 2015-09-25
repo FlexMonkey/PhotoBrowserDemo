@@ -259,9 +259,9 @@ class PhotoBrowser: UIViewController
             popoverPresentationController.sourceRect = CGRect(origin: recognizer.locationInView(self.view), size: CGSize(width: 0, height: 0))
             
             popoverPresentationController.sourceView = view
-            
-            presentViewController(contextMenuController, animated: true, completion: nil)
         }
+        
+        presentViewController(contextMenuController, animated: true, completion: nil)
     }
     
     func toggleFavourite(value: UIAlertAction!) -> Void
