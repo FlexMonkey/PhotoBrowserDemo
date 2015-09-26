@@ -1,6 +1,8 @@
 # PhotoBrowserDemo
 A Swift image browser/picker for use with PHImageManager
 
+![screenshot](/PhotoBrowserDemo/IMG_3653.PNG)
+
 Original blog post: http://flexmonkey.blogspot.co.uk/2015/01/creating-phimagemanager-browserpicker.html
 
 *This project has now been updated to work under Swift 2.0 / Xcode 7 and can target both iPads and iPhones*
