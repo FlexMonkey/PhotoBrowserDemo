@@ -16,7 +16,7 @@ class PhotoBrowser: UIViewController
     let manager = PHImageManager.defaultManager()
     let requestOptions = PHImageRequestOptions()
 
-    var longPressTarget: (cell: UICollectionViewCell, indexPath: NSIndexPath)?
+    var touchedCell: (cell: UICollectionViewCell, indexPath: NSIndexPath)?
     var collectionViewWidget: UICollectionView!
     var segmentedControl: UISegmentedControl!
     let blurOverlay = UIVisualEffectView(effect: UIBlurEffect())
@@ -80,7 +80,7 @@ class PhotoBrowser: UIViewController
             
             if oldValue.count - assets.count == 1
             {
-                collectionViewWidget.deleteItemsAtIndexPaths([longPressTarget!.indexPath])
+                collectionViewWidget.deleteItemsAtIndexPaths([touchedCell!.indexPath])
                 
                 collectionViewWidget.reloadData()
             }
@@ -181,15 +181,15 @@ class PhotoBrowser: UIViewController
         collectionViewWidget.registerClass(ImageItemRenderer.self, forCellWithReuseIdentifier: "Cell")
         collectionViewWidget.contentInset = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 0)
    
-        if UIApplication.sharedApplication().keyWindow?.traitCollection.forceTouchCapability == UIForceTouchCapability.Available
-        {
-            registerForPreviewingWithDelegate(self, sourceView: view)
-        }
-        else
-        {
-            let longPress = UILongPressGestureRecognizer(target: self, action: "longPressHandler:")
-            collectionViewWidget.addGestureRecognizer(longPress)
-        }
+    if UIApplication.sharedApplication().keyWindow?.traitCollection.forceTouchCapability == UIForceTouchCapability.Available
+    {
+        registerForPreviewingWithDelegate(self, sourceView: view)
+    }
+    else
+    {
+        let longPress = UILongPressGestureRecognizer(target: self, action: "longPressHandler:")
+        collectionViewWidget.addGestureRecognizer(longPress)
+    }
             
         background.layer.borderColor = UIColor.darkGrayColor().CGColor
         background.layer.borderWidth = 1
@@ -253,8 +253,8 @@ class PhotoBrowser: UIViewController
     
     func longPressHandler(recognizer: UILongPressGestureRecognizer)
     {
-        guard let longPressTarget = longPressTarget,
-            asset = assets[longPressTarget.indexPath.row] as? PHAsset where
+        guard let touchedCell = touchedCell,
+            asset = assets[touchedCell.indexPath.row] as? PHAsset where
             recognizer.state == UIGestureRecognizerState.Began else
         {
             return
@@ -278,7 +278,7 @@ class PhotoBrowser: UIViewController
     
     func toggleFavourite(_: UIAlertAction!) -> Void
     {
-        if let longPressTarget = longPressTarget, targetEntity = assets[longPressTarget.indexPath.row] as? PHAsset
+        if let touchedCell = touchedCell, targetEntity = assets[touchedCell.indexPath.row] as? PHAsset
         {
             PHPhotoLibrary.sharedPhotoLibrary().performChanges(
                 {
@@ -391,7 +391,7 @@ extension PhotoBrowser: UICollectionViewDelegate
     
     func collectionView(collectionView: UICollectionView, didHighlightItemAtIndexPath indexPath: NSIndexPath)
     {
-        longPressTarget = (cell: self.collectionView(collectionViewWidget, cellForItemAtIndexPath: indexPath), indexPath: indexPath)
+        touchedCell = (cell: self.collectionView(collectionViewWidget, cellForItemAtIndexPath: indexPath), indexPath: indexPath)
     }
     
     func collectionView(collectionView: UICollectionView, didSelectItemAtIndexPath indexPath: NSIndexPath)
@@ -409,8 +409,8 @@ extension PhotoBrowser: UIViewControllerPreviewingDelegate
 {
     func previewingContext(previewingContext: UIViewControllerPreviewing, viewControllerForLocation location: CGPoint) -> UIViewController?
     {
-        guard let longPressTarget = longPressTarget,
-            asset = assets[longPressTarget.indexPath.row] as? PHAsset else
+        guard let touchedCell = touchedCell,
+            asset = assets[touchedCell.indexPath.row] as? PHAsset else
         {
             return nil
         }
@@ -428,8 +428,8 @@ extension PhotoBrowser: UIViewControllerPreviewingDelegate
     
     func previewingContext(previewingContext: UIViewControllerPreviewing, commitViewController viewControllerToCommit: UIViewController)
     {
-        guard let longPressTarget = longPressTarget,
-            asset = assets[longPressTarget.indexPath.row] as? PHAsset else
+        guard let touchedCell = touchedCell,
+            asset = assets[touchedCell.indexPath.row] as? PHAsset else
         {
             dismissViewControllerAnimated(true, completion: nil)
             
@@ -439,6 +439,8 @@ extension PhotoBrowser: UIViewControllerPreviewingDelegate
         requestImageForAsset(asset)
     }
 }
+
+// MARK: PeekViewController
 
 class PeekViewController: UIViewController
 {
