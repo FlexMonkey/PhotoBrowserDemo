@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		05D0D8181BB66AE400D23062 /* IMG_3653.PNG in Resources */ = {isa = PBXBuildFile; fileRef = 05D0D8171BB66AE400D23062 /* IMG_3653.PNG */; settings = {ASSET_TAGS = (); }; };
 		3EAB3E671A5E65DB00923DB0 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3EAB3E661A5E65DB00923DB0 /* AppDelegate.swift */; };
 		3EAB3E691A5E65DB00923DB0 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3EAB3E681A5E65DB00923DB0 /* ViewController.swift */; };
 		3EAB3E6C1A5E65DB00923DB0 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 3EAB3E6A1A5E65DB00923DB0 /* Main.storyboard */; };
@@ -29,6 +30,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		05D0D8171BB66AE400D23062 /* IMG_3653.PNG */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = IMG_3653.PNG; sourceTree = "<group>"; };
 		3EAB3E611A5E65DB00923DB0 /* PhotoBrowserDemo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = PhotoBrowserDemo.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		3EAB3E651A5E65DB00923DB0 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		3EAB3E661A5E65DB00923DB0 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
@@ -62,6 +64,14 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		05D0D8141BB66A7800D23062 /* assets */ = {
+			isa = PBXGroup;
+			children = (
+				05D0D8171BB66AE400D23062 /* IMG_3653.PNG */,
+			);
+			name = assets;
+			sourceTree = "<group>";
+		};
 		3EAB3E581A5E65DB00923DB0 = {
 			isa = PBXGroup;
 			children = (
@@ -83,6 +93,7 @@
 		3EAB3E631A5E65DB00923DB0 /* PhotoBrowserDemo */ = {
 			isa = PBXGroup;
 			children = (
+				05D0D8141BB66A7800D23062 /* assets */,
 				3EAB3E861A5E674C00923DB0 /* photoBrowser */,
 				3EAB3E661A5E65DB00923DB0 /* AppDelegate.swift */,
 				3EAB3E681A5E65DB00923DB0 /* ViewController.swift */,
@@ -211,6 +222,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				05D0D8181BB66AE400D23062 /* IMG_3653.PNG in Resources */,
 				3EAB3E6C1A5E65DB00923DB0 /* Main.storyboard in Resources */,
 				3EAB3E711A5E65DB00923DB0 /* LaunchScreen.xib in Resources */,
 				3EAB3E6E1A5E65DB00923DB0 /* Images.xcassets in Resources */,
