@@ -267,8 +267,7 @@ class PhotoBrowser: UIViewController
         
         if let popoverPresentationController = contextMenuController.popoverPresentationController
         {
-            popoverPresentationController.permittedArrowDirections = [ UIPopoverArrowDirection.Down]
-            popoverPresentationController.sourceRect = CGRect(origin: recognizer.locationInView(self.view), size: CGSize(width: 0, height: 0))
+            popoverPresentationController.sourceRect = collectionViewWidget.convertRect(touchedCell.cell.frame, toView: self.view)
             
             popoverPresentationController.sourceView = view
         }
